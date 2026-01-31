@@ -13,6 +13,9 @@ A robust, container-ready .NET Worker Service designed to monitor stock prices (
     - [Locally (CLI)](#locally-cli)
     - [Using Docker](#using-docker)
 3. [Configuration Guide](#configuration-guide)
+4. [Architecture](#architecture)
+    - [High-Level Diagram](#high-level-diagram)
+    - [Component Design](#component-design)
 
 ---
 
@@ -95,3 +98,39 @@ Override the settings using environment variables. The structure uses double und
 - Env Var: `AppSettings__Smtp__User=abc`
 
 ---
+
+## Architecture
+
+The solution follows a **Clean Architecture** simplified approach suitable for a Worker Process. It separates the domain logic, infrastructure services, and the hosting entry point.
+
+### High-Level Diagram
+
+```mermaid
+graph TD
+    subgraph Host [Worker Host]
+        Entry[Program.cs] --> Worker[Worker BackgroundService]
+    end
+
+    subgraph Core [Services & Domain]
+        Worker --> |Orchestrates| Monitor[IStockMonitorService]
+        Monitor --> |Polls| IStock[IStockService]
+        Monitor --> |Notifies| IEmail[IEmailService]
+        Config[MonitorOptions / AppSettings] -.-> Monitor
+    end
+
+    subgraph Infra [Infrastructure]
+        IStock --> |Http Client| Brapi[Brapi API]
+        IEmail --> |SMTP| MailServer[SMTP Server]
+    end
+
+    Brapi --> |Return Price| IStock
+    MailServer --> |Ack| IEmail
+```
+
+### Component Design
+
+1. **Worker (Host):** The orchestration layer. It manages the lifecycle of the application and triggers the `StockMonitorService`.
+2. **IStockMonitorService:** Encapsulates the core business logic (Comparing Price vs. Thresholds).
+3. **IStockService:** Abstracts the complexity of fetching data. It doesn't matter if the data comes from Brapi, Yahoo, or a database.
+4. **IEmailService:** Abstracts the notification method.
+
