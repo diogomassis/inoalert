@@ -23,6 +23,7 @@ A robust, container-ready .NET Worker Service designed to monitor stock prices (
     - [Scalability Strategy](#scalability-strategy)
 7. [Design Patterns Used](#design-patterns-used)
 8. [Resilience & Reliability](#resilience--reliability)
+9. [Quality Assurance & Testing](#quality-assurance--testing)
 
 ---
 
@@ -206,5 +207,54 @@ The application is designed to be "Crash Resistant":
 - **Transient Fault Handling:** Using Polly, we handle HTTP 5xx errors and timeouts gracefully.
 - **Graceful Error Handling:** If an email fails to send, the loop continues. We log the error but do not kill the process, ensuring that monitoring persists even if the SMTP server blips.
 - **Containerization:** The Dockerfile uses `dotnet restore` and `dotnet publish` in separate stages to ensure a clean, optimized production image.
+
+---
+
+## Quality Assurance & Testing
+
+This project adopts a **Test-Driven** mindset to ensure logic correctness and refactoring safety.
+
+**Tools Used:**
+
+- **xUnit:** The test runner.
+- **Moq:** For mocking external dependencies (`IStockService`, `IEmailService`). Allows testing the business logic without making real HTTP requests or sending emails.
+- **FluentAssertions:** For writing readable and expressive assertions.
+
+### What is tested?
+
+The critical business logic resides in `StockMonitorService` and is fully covered:
+
+1. **Sell Logic:** Ensures an email is dispatched when `Price > SellPrice`.
+2. **Buy Logic:** Ensures an email is dispatched when `Price < BuyPrice`.
+3. **Neutral Logic:** Ensures NO email is sent when the price is within the acceptable range.
+4. **Resilience:** Ensures the service handles API failures (throws) without crashing the Worker loop (which catches it).
+
+### How to run tests
+
+```bash
+dotnet test
+```
+
+### Mutation Testing (Stryker)
+
+To ensure our tests are not just "touching lines" but actually asserting logic, we use **Mutation Testing**.
+
+> "Coverage only tells you what code was executed. Mutation testing tells you how satisfied your tests are."
+
+**How it works:** Stryker introduces small bugs (mutants) into the compiled code (e.g., changing `>` to `>=` or removing a function call) and runs the tests. If the tests fail, the mutant is **Killed** (Good). If they pass, the mutant **Survived** (Bad, needs more strict tests).
+
+**Run mutation tests:**
+
+```bash
+# Prepare environment (restore tool)
+cd tests
+dotnet tool restore
+
+# Run Stryker from the test project
+cd StockQuoteAlert.Tests
+dotnet dotnet-stryker
+```
+
+Check the generated HTML report in `tests/StockQuoteAlert.Tests/StrykerOutput` for a visual inspection of code quality.
 
 ---
