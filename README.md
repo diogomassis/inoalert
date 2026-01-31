@@ -12,6 +12,7 @@ A robust, container-ready .NET Worker Service designed to monitor stock prices (
     - [Configuration](#configuration)
     - [Locally (CLI)](#locally-cli)
     - [Using Docker](#using-docker)
+3. [Configuration Guide](#configuration-guide)
 
 ---
 
@@ -73,3 +74,24 @@ docker run --name petr4-monitor \
   stock-alert PETR4 22.67 22.59
 ```
 
+## Configuration Guide
+
+Depending on your environment, you should configure the application differently:
+
+| Environment | Where to Edit | Key Files |
+| :--- | :--- | :--- |
+| **Local (CLI)** | JSON Config | `src/StockQuoteAlert/appsettings.json` |
+| **Docker** | Environment Vars | Pass `-e` flags in `docker run` command |
+
+### 1. Local (Developer Mode)
+
+Simply open `src/StockQuoteAlert/appsettings.json` and fill in your Mailtrap credentials.
+
+### 2. Docker (Containerized)
+
+Override the settings using environment variables. The structure uses double underscore `__` for nesting:
+
+- JSON: `Smtp: { User: "abc" }`
+- Env Var: `AppSettings__Smtp__User=abc`
+
+---
