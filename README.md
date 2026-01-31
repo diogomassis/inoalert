@@ -17,6 +17,10 @@ A robust, container-ready .NET Worker Service designed to monitor stock prices (
     - [High-Level Diagram](#high-level-diagram)
     - [Component Design](#component-design)
 5. [Technology Stack](#technology-stack)
+6. [Design Decisions & Trade-offs](#design-decisions--trade-offs)
+    - [Why .NET Worker Service?](#why-net-worker-service)
+    - [Why Monolith over Microservices?](#why-monolith-over-microservices)
+    - [Scalability Strategy](#scalability-strategy)
 
 ---
 
@@ -147,3 +151,32 @@ graph TD
 - **Containerization:** Docker (Alpine Linux based for small footprint)
 - **CI:** GitHub Actions
 
+---
+
+## Design Decisions & Trade-offs
+
+### Why .NET Worker Service?
+
+Instead of a raw `Console.Application` with a `while(true)` loop, we used the **Worker Service** template.
+
+- **Benefit:** Provides out-of-the-box support for Dependency Injection, Logging, Configuration (appsettings + env vars), and Graceful Shutdown (handling SIGTERM signals from Docker).
+- **Trade-off:** Slightly more boilerplate code than a "Hello World" console app, but significantly more maintainable.
+
+### Why Monolith over Microservices?
+
+A simplified architecture was chosen over a distributed microservice architecture (e.g., RabbitMQ for queuing alerts, Redis for cache).
+
+- **Reasoning:** The problem domain (monitoring a specific stock) is highly cohesive. Splitting the fetching logic and sending logic into different services would introduce **network latency**, **serialization costs**, and **operational complexity** without adding value.
+- **The "Fallacy of Distributed Computing":** For a single-responsibility monitoring agent, keeping processing "In-Process" is the most performant and robust decision.
+
+### Scalability Strategy
+
+Even though it is a single service, it scales **Horizontally**.
+
+- **Scenario:** You want to monitor 500 different stocks.
+- **Solution:** You do not run one massive instance. You spawn 500 light containers, each configured with different arguments monitoring one stock.
+  - `docker run stock-alert PETR4 ...`
+  - `docker run stock-alert VALE3 ...`
+- **Resource Usage:** Since we use Alpine Linux and .NET 8, the memory footprint is minimal (~60MB RAM).
+
+---
