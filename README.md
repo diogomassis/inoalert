@@ -21,6 +21,8 @@ A robust, container-ready .NET Worker Service designed to monitor stock prices (
     - [Why .NET Worker Service?](#why-net-worker-service)
     - [Why Monolith over Microservices?](#why-monolith-over-microservices)
     - [Scalability Strategy](#scalability-strategy)
+7. [Design Patterns Used](#design-patterns-used)
+8. [Resilience & Reliability](#resilience--reliability)
 
 ---
 
@@ -178,5 +180,31 @@ Even though it is a single service, it scales **Horizontally**.
   - `docker run stock-alert PETR4 ...`
   - `docker run stock-alert VALE3 ...`
 - **Resource Usage:** Since we use Alpine Linux and .NET 8, the memory footprint is minimal (~60MB RAM).
+
+---
+
+## Design Patterns Used
+
+1. **Dependency Injection (DI):**
+    All dependencies (`IStockService`, `IEmailService`, `Configuration`) are injected. This makes the code testable (we can mock the API during tests) and loosely coupled.
+
+2. **Options Pattern:**
+    Used to bind `appsettings.json` sections to strongly typed classes (`AppSettings`), preventing "Magic Strings" for configuration keys.
+
+3. **Strategy Pattern (implied via Interfaces):**
+    By using `IStockService`, we can easily swap the implementation. If Brapi.dev goes down, we can write a `YahooFinanceService : IStockService` and swap it in `Program.cs` without changing a single line of the `Worker` logic.
+
+4. **Retry Pattern (Polly):**
+    Network requests are flaky. We implemented a **Exponential Backoff** policy. If the API fails, the application doesn't crash; it waits and retries intelligently.
+
+---
+
+## Resilience & Reliability
+
+The application is designed to be "Crash Resistant":
+
+- **Transient Fault Handling:** Using Polly, we handle HTTP 5xx errors and timeouts gracefully.
+- **Graceful Error Handling:** If an email fails to send, the loop continues. We log the error but do not kill the process, ensuring that monitoring persists even if the SMTP server blips.
+- **Containerization:** The Dockerfile uses `dotnet restore` and `dotnet publish` in separate stages to ensure a clean, optimized production image.
 
 ---
