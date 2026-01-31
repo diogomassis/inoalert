@@ -124,6 +124,7 @@ graph TD
 
     subgraph Core [Services & Domain]
         Worker --> |Orchestrates| Monitor[IStockMonitorService]
+        Monitor --> |Checks Hours| MarketChecker[IMarketStatusService]
         Monitor --> |Polls| IStock[IStockService]
         Monitor --> |Notifies| IEmail[IEmailService]
         Config[MonitorOptions / AppSettings] -.-> Monitor
@@ -142,8 +143,9 @@ graph TD
 
 1. **Worker (Host):** The orchestration layer. It manages the lifecycle of the application and triggers the `StockMonitorService`.
 2. **IStockMonitorService:** Encapsulates the core business logic (Comparing Price vs. Thresholds).
-3. **IStockService:** Abstracts the complexity of fetching data. It doesn't matter if the data comes from Brapi, Yahoo, or a database.
-4. **IEmailService:** Abstracts the notification method.
+3. **IMarketStatusService:** Checks if the B3 Exchange is currently open (Weekdays 10:00 - 17:30 BRT), saving resources when the market is closed.
+4. **IStockService:** Abstracts the complexity of fetching data. It doesn't matter if the data comes from Brapi, Yahoo, or a database.
+5. **IEmailService:** Abstracts the notification method.
 
 ---
 
@@ -200,6 +202,9 @@ Even though it is a single service, it scales **Horizontally**.
 
 4. **Retry Pattern (Polly):**
     Network requests are flaky. We implemented a **Exponential Backoff** policy. If the API fails, the application doesn't crash; it waits and retries intelligently.
+
+5. **Smart Resource Usage:**
+    The application includes a `MarketStatusService` that prevents unnecessary API calls when the Stock Market (B3) is closed, such as weekends or outside trading hours (10:00 - 17:30).
 
 ---
 
