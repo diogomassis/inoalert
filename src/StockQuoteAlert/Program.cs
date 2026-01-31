@@ -31,6 +31,8 @@ var monitorOptions = new MonitorOptions(symbol, sellPrice, buyPrice);
 var builder = Host.CreateApplicationBuilder(args);
 builder.Services.Configure<AppSettings>(builder.Configuration.GetSection("AppSettings"));
 builder.Services.AddSingleton(monitorOptions);
+builder.Services.AddSingleton(TimeProvider.System);
+builder.Services.AddSingleton<IMarketStatusService, MarketStatusService>();
 builder.Services.AddTransient<IEmailService, EmailService>();
 builder.Services.AddTransient<IStockMonitorService, StockMonitorService>();
 builder.Services.AddHttpClient<IStockService, StockService>()

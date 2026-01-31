@@ -7,17 +7,28 @@ public class StockMonitorService : IStockMonitorService
 {
     private readonly IStockService _stockService;
     private readonly IEmailService _emailService;
+    private readonly IMarketStatusService _marketStatusService;
     private readonly ILogger<StockMonitorService> _logger;
 
-    public StockMonitorService(IStockService stockService, IEmailService emailService, ILogger<StockMonitorService> logger)
+    public StockMonitorService(
+        IStockService stockService,
+        IEmailService emailService,
+        IMarketStatusService marketStatusService,
+        ILogger<StockMonitorService> logger)
     {
         _stockService = stockService;
         _emailService = emailService;
+        _marketStatusService = marketStatusService;
         _logger = logger;
     }
 
     public async Task CheckAndNotifyAsync(MonitorOptions options)
     {
+        if (!_marketStatusService.IsMarketOpen())
+        {
+            _logger.LogInformation("Mercado fechado. Aguardando abertura...");
+            return;
+        }
         try
         {
             var price = await _stockService.GetPriceAsync(options.Symbol);
