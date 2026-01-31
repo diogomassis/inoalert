@@ -16,6 +16,7 @@ A robust, container-ready .NET Worker Service designed to monitor stock prices (
 4. [Architecture](#architecture)
     - [High-Level Diagram](#high-level-diagram)
     - [Component Design](#component-design)
+5. [Technology Stack](#technology-stack)
 
 ---
 
@@ -133,4 +134,16 @@ graph TD
 2. **IStockMonitorService:** Encapsulates the core business logic (Comparing Price vs. Thresholds).
 3. **IStockService:** Abstracts the complexity of fetching data. It doesn't matter if the data comes from Brapi, Yahoo, or a database.
 4. **IEmailService:** Abstracts the notification method.
+
+---
+
+## Technology Stack
+
+- **Language:** C# 12 / .NET 8
+- **Execution Model:** `Microsoft.Extensions.Hosting` (Worker Service)
+- **Networking:** `HttpClient` with `IHttpClientFactory`
+- **Resilience:** `Microsoft.Extensions.Http.Polly`
+- **Email:** `MailKit` & `MimeKit`
+- **Containerization:** Docker (Alpine Linux based for small footprint)
+- **CI:** GitHub Actions
 
