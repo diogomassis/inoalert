@@ -10,6 +10,8 @@ A robust, container-ready .NET Worker Service designed to monitor stock prices (
 2. [How to Run](#how-to-run)
     - [Prerequisites](#prerequisites)
     - [Configuration](#configuration)
+    - [Locally (CLI)](#locally-cli)
+    - [Using Docker](#using-docker)
 
 ---
 
@@ -39,3 +41,35 @@ Update `src/StockQuoteAlert/appsettings.json` with your SMTP credentials:
   "Password": "your_password"
 }
 ```
+
+### Locally (CLI)
+
+Pass the Asset Symbol, Sell Price, and Buy Price as arguments:
+
+```bash
+# Selling target: 22.67 | Buying target: 22.59
+cd src/StockQuoteAlert
+dotnet run -- PETR4 22.67 22.59
+```
+
+### Using Docker
+
+Build the image using the provided multi-stage Dockerfile:
+
+```bash
+# From root directory
+docker build -t stock-alert -f src/StockQuoteAlert/Dockerfile src/StockQuoteAlert
+```
+
+**Configuration (Environment Variables):**
+When running in Docker, do NOT edit `appsettings.json`. Instead, pass environment variables to override the defaults.
+
+```bash
+# Run container with custom SMTP settings
+docker run --name petr4-monitor \
+  -e AppSettings__Smtp__Host=smtp.mailtrap.io \
+  -e AppSettings__Smtp__User=my_user \
+  -e AppSettings__Smtp__Password=my_password \
+  stock-alert PETR4 22.67 22.59
+```
+
