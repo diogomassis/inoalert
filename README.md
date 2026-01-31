@@ -24,6 +24,9 @@ A robust, container-ready .NET Worker Service designed to monitor stock prices (
 7. [Design Patterns Used](#design-patterns-used)
 8. [Resilience & Reliability](#resilience--reliability)
 9. [Quality Assurance & Testing](#quality-assurance--testing)
+10. [Docker Optimization & Best Practices](#docker-optimization--best-practices)
+11. [Interest in Kubernetes?](#interest-in-kubernetes)
+12. [Author](#author)
 
 ---
 
@@ -258,3 +261,52 @@ dotnet dotnet-stryker
 Check the generated HTML report in `tests/StockQuoteAlert.Tests/StrykerOutput` for a visual inspection of code quality.
 
 ---
+
+## Docker Optimization & Best Practices
+
+To ensure the container is as fast, small, and secure as possible, we applied several advanced patterns. These techniques are based on industry standards and recommendations from experts.
+
+**Source of Inspiration:** [Docker Performance & Optimization Guide (YouTube)](https://www.youtube.com/watch?v=t779DVjCKCs)
+
+We implemented the following strategies from the guide:
+
+1. **Base Images (0:34):**
+    We switched from the standard `dotnet/runtime` (Ubuntu based) to `dotnet/runtime:8.0-alpine`. Alpine Linux is a security-oriented, lightweight Linux distribution (~5MB). This reduces the final image size from ~200MB to ~80MB.
+
+2. **Distroless / Minimal Images (1:41):**
+    By using Alpine, we strip away unnecessary tools (bash, curl, systemd) that are not needed for the app to run. This reduces the attack surface significantly.
+
+3. **Layer Caching (2:14):**
+    In the `Dockerfile`, we copy `*.csproj` and run `dotnet restore` **before** copying the rest of the source code.
+    - *Result:* Docker caches the "Restore" layer. If you change a line of code in `Program.cs` but don't add a new NuGet package, Docker skips the slow `restore` step and only rebuilds the app code.
+
+4. **DockerIgnore (3:15):**
+    A `.dockerignore` file prevents `bin/`, `obj/`, `.git/` and local credentials from being sent to the Docker Daemon during build. This speeds up the "Building context" phase and prevents secrets leakage.
+
+5. **Multi-Stage Builds (5:47):**
+    We use two stages:
+    - **Builder:** Contains the full .NET SDK (heavy) to compile the code.
+    - **Runtime:** Contains only the minimal runtime (light).
+    We discard the SDK layers and keep only the compiled DLLs in the final image.
+
+6. **Security (User Permissions):**
+    We create and switch to a non-root user (`appuser`) inside the container. This prevents a potential attacker from gaining root access to the host if they manage to break out of the application.
+
+---
+
+## Interest in Kubernetes?
+
+This project focuses on single-instance Docker execution for **practicality and simplicity**. However, the application is container-ready and can be easily orchestrated.
+
+If you are looking for a **Production-Ready Kubernetes** template (including HPA, Ingress, and Monitoring), you can easily adapt the infrastructure from my other project:
+
+👉 **[url-shortener project](https://github.com/diogomassis/url-shortener)**
+
+That repository contains a complete reference implementation (`deployment.yaml`, `secrets.yaml`, `k3d`, etc.) that corresponds perfectly to the needs of this worker service.
+
+---
+
+## Author
+
+**Diogo Martins de Assis**  
+[LinkedIn](https://www.linkedin.com/in/diogomassis)
