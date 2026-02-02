@@ -1,4 +1,3 @@
-using Microsoft.Extensions.Logging;
 using StockQuoteAlert.Models;
 
 namespace StockQuoteAlert.Services;

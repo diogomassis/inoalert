@@ -1,6 +1,3 @@
-using MailKit.Net.Smtp;
-using MimeKit;
-using Microsoft.Extensions.Options;
 using StockQuoteAlert.Models;
 
 namespace StockQuoteAlert.Services;

@@ -1,5 +1,3 @@
-using System.Collections.Concurrent;
-
 namespace StockQuoteAlert.Services;
 
 public class NotificationStateManager : INotificationStateManager
