@@ -7,7 +7,7 @@ public class AppSettings
     public int MonitoringIntervalSeconds { get; set; } = 60;
     public string BrapiToken { get; set; }
     public bool IgnoreMarketHours { get; set; } = false;
-    public string[] EnabledChannels { get; set; } = ["Email"];
+    public string[] EnabledChannels { get; set; } = [];
     public string DiscordWebhookUrl { get; set; }
 }
 
