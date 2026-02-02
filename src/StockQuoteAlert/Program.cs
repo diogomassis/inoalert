@@ -43,6 +43,7 @@ builder.Services.Configure<AppSettings>(builder.Configuration.GetSection("AppSet
 builder.Services.AddSingleton(monitorOptions);
 builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddSingleton<IMarketStatusService, MarketStatusService>();
+builder.Services.AddSingleton<INotificationStateManager, NotificationStateManager>();
 builder.Services.AddTransient<INotificationService, EmailService>();
 builder.Services.AddTransient<INotificationService, DiscordNotificationService>();
 
