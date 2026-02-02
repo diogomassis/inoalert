@@ -11,6 +11,7 @@ A robust, container-ready .NET Worker Service designed to monitor stock prices (
     - [Locally (CLI)](#locally-cli)
     - [Using Docker](#using-docker)
 3. [Execution Results & Demo](#execution-results--demo)
+    - [Video Demo](#video-demo)
     - [1. Current Configuration](#1-current-configuration)
     - [2. CLI Execution Result](#2-cli-execution-result)
     - [3. Docker Container Execution](#3-docker-container-execution)
@@ -35,6 +36,7 @@ A robust, container-ready .NET Worker Service designed to monitor stock prices (
     - [How to run tests](#how-to-run-tests)
 11. [Docker Optimization and Best Practices](#docker-optimization-and-best-practices)
 12. [Author](#author)
+13. [Commit Pattern](#commit-pattern)
 
 ---
 
@@ -117,6 +119,10 @@ docker run --name petr4-monitor \
 ## Execution Results & Demo
 
 Based on the latest test runs, here is the state of the configuration and the results obtained.
+
+### Video Demo
+
+You can check a video recording of the execution here: [inoalert_record.mp4](docs/inoalert_record.mp4)
 
 ### 1. Current Configuration
 
@@ -431,3 +437,18 @@ We implemented the following strategies from the guide:
 
 **Diogo Martins de Assis**  
 [LinkedIn](https://www.linkedin.com/in/diogomassis)
+
+---
+
+## Commit Pattern
+
+This project strictly follows the **[Conventional Commits](https://www.conventionalcommits.org/)** specification.
+
+- **feat**: A new feature
+- **fix**: A bug fix
+- **docs**: Documentation only changes
+- **style**: Changes that do not affect the meaning of the code (white-space, formatting, etc)
+- **refactor**: A code change that neither fixes a bug nor adds a feature
+- **perf**: A code change that improves performance
+- **test**: Adding missing tests or correcting existing tests
+- **chore**: Changes to the build process or auxiliary tools and libraries such as documentation generation
