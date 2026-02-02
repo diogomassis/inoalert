@@ -168,7 +168,15 @@ graph TD
 5. **INotificationStateManager:** Manages the state of sent notifications (in-memory) to prevent spamming. It tracks the last price and time to decide if a new alert is necessary.
 6. **INotificationService:** The application supports multiple simultaneous notification channels (Strategy Pattern).
     - **Configurable:** Channels are dynamically registered based on `EnabledChannels` in `appsettings.json`.
-    - **Extensible:** Includes a real `EmailService` and a sample `DiscordNotificationService` (Mock) to demonstrate how to easily plug in new providers (like Slack, SMS, WhatsApp) without modifying the core logic.
+    - **Extensible:** Includes a real `EmailService` and a sample `DiscordNotificationService` (Console Log) to demonstrate how to easily plug in new providers (like Slack, SMS, WhatsApp) without modifying the core logic.
+
+### Project Structure
+
+The solution codebase is organized by domain responsibilities within `Services/`:
+
+- **Market/**: Handles external data acquisition (`StockService`) and exchange validation (`MarketStatusService`).
+- **Notifications/**: Manages alert channels (`EmailService`, `DiscordNotificationService`) and anti-spam state rules (`NotificationStateManager`).
+- **Monitoring/**: Contains the core logic (`StockMonitorService`) that orchestrates the flow between data and alerts.
 
 ---
 
