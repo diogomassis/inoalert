@@ -46,14 +46,28 @@ This application acts as a personal financial assistant. It continuously polls a
 
 > ⚠️ **SECURITY WARNING:** The `appsettings.json` file in this repository may contain example credentials for testing purposes. **NEVER** commit real production credentials (like your Gmail password or API Keys) to version control. For production environments, use **Environment Variables** or **.NET User Secrets** to securely override these settings without exposing them in the code.
 
-Update `src/StockQuoteAlert/appsettings.json` with your SMTP credentials:
+Update `src/StockQuoteAlert/appsettings.json` with your credentials:
 
 ```json
-"Smtp": {
-  "Host": "smtp.mailtrap.io",
-  "Port": 587,
-  "User": "your_user",
-  "Password": "your_password"
+{
+  "Logging": { ... },
+  "AppSettings": {
+    // SMTP server configuration
+    "Smtp": {
+      "Host": "smtp.gmail.com",
+      "Port": 587,
+      "User": "your_email@gmail.com",
+      "Password": "your_app_password"
+    },
+    // The recipient email address
+    "NotifyEmail": "target_user@gmail.com",
+    // Time in seconds between checks
+    "MonitoringIntervalSeconds": 60,
+    // (Optional) Brapi.dev API Token for higher rate limits
+    "BrapiToken": "your_brapi_token",
+    // (Testing) Set to true to bypass market status check
+    "IgnoreMarketHours": false
+  }
 }
 ```
 
@@ -143,7 +157,7 @@ graph TD
 
 1. **Worker (Host):** The orchestration layer. It manages the lifecycle of the application and triggers the `StockMonitorService`.
 2. **IStockMonitorService:** Encapsulates the core business logic (Comparing Price vs. Thresholds).
-3. **IMarketStatusService:** Checks if the B3 Exchange is currently open (Weekdays 10:00 - 17:30 BRT), saving resources when the market is closed.
+3. **IMarketStatusService:** Checks if the B3 Exchange is currently open (Weekdays 10:00 - 17:30 BRT), saving resources when the market is closed. Can be bypassed for testing via `IgnoreMarketHours` config.
 4. **IStockService:** Abstracts the complexity of fetching data. It doesn't matter if the data comes from Brapi, Yahoo, or a database.
 5. **INotificationService:** The application now supports multiple simultaneous notification channels (Strategy Pattern). It broadcasts alerts to all registered implementations (e.g., Email, Discord).
 
