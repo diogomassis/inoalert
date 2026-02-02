@@ -83,7 +83,7 @@ Update `src/StockQuoteAlert/appsettings.json` with your credentials:
 }
 ```
 
-> **Note on Discord:** The `DiscordNotificationService` included is currently a **mock** implementation to demonstrate architectural extensibility. It logs to the console instead of calling a real webhook. To use real Discord notifications, implement the HTTP call in `DiscordNotificationService.cs`.
+> **Note on Discord:** The `DiscordNotificationService` included is currently a **mock** implementation to demonstrate architectural extensibility (**Open/Closed Principle**). It logs to the console instead of calling a real webhook. To use real Discord notifications, implement the HTTP call in `DiscordNotificationService.cs`.
 
 ### Locally (CLI)
 
