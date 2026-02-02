@@ -6,6 +6,7 @@ public class AppSettings
     public string NotifyEmail { get; set; }
     public int MonitoringIntervalSeconds { get; set; } = 60;
     public string BrapiToken { get; set; }
+    public bool IgnoreMarketHours { get; set; } = false;
 }
 
 public class SmtpSettings
