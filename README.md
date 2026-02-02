@@ -10,25 +10,31 @@ A robust, container-ready .NET Worker Service designed to monitor stock prices (
     - [Configuration](#configuration)
     - [Locally (CLI)](#locally-cli)
     - [Using Docker](#using-docker)
-3. [Configuration Guide](#configuration-guide)
+3. [Execution Results & Demo](#execution-results--demo)
+    - [1. Current Configuration](#1-current-configuration)
+    - [2. CLI Execution Result](#2-cli-execution-result)
+    - [3. Docker Container Execution](#3-docker-container-execution)
+    - [4. Email Notification](#4-email-notification)
+    - [5. Automated Tests](#5-automated-tests)
+4. [Configuration Guide](#configuration-guide)
     - [1. Local (Developer Mode)](#1-local-developer-mode)
     - [2. Docker (Containerized)](#2-docker-containerized)
-4. [Architecture](#architecture)
+5. [Architecture](#architecture)
     - [High-Level Diagram](#high-level-diagram)
     - [Component Design](#component-design)
     - [Project Structure](#project-structure)
-5. [Technology Stack](#technology-stack)
-6. [Design Decisions & Trade-offs](#design-decisions--trade-offs)
+6. [Technology Stack](#technology-stack)
+7. [Design Decisions & Trade-offs](#design-decisions--trade-offs)
     - [Why .NET Worker Service?](#why-net-worker-service)
     - [Why Monolith over Microservices?](#why-monolith-over-microservices)
     - [Scalability Strategy](#scalability-strategy)
-7. [Design Patterns Used](#design-patterns-used)
-8. [Resilience & Reliability](#resilience--reliability)
-9. [Quality Assurance & Testing](#quality-assurance--testing)
+8. [Design Patterns Used](#design-patterns-used)
+9. [Resilience & Reliability](#resilience--reliability)
+10. [Quality Assurance & Testing](#quality-assurance--testing)
     - [What is tested?](#what-is-tested)
     - [How to run tests](#how-to-run-tests)
-10. [Docker Optimization and Best Practices](#docker-optimization-and-best-practices)
-11. [Author](#author)
+11. [Docker Optimization and Best Practices](#docker-optimization-and-best-practices)
+12. [Author](#author)
 
 ---
 
@@ -107,6 +113,112 @@ docker run --name petr4-monitor \
   -e AppSettings__Smtp__Password=my_password \
   stock-alert PETR4 22.67 22.59
 ```
+
+## Execution Results & Demo
+
+Based on the latest test runs, here is the state of the configuration and the results obtained.
+
+### 1. Current Configuration
+
+The application is currently configured with the following `appsettings.json` for development/testing usage.
+
+> **Functionality Note:** `IgnoreMarketHours` is set to `true` to allow testing outside of B3 trading hours (10:00 - 17:00).
+> **App Password Note:** For Gmail SMTP, ensure you use an **App Password** if 2FA is enabled. Regular account passwords will not work. Google "App Password Gmail" for instructions.
+
+```json
+{
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft.Hosting.Lifetime": "Information"
+    }
+  },
+  "AppSettings": {
+    "Smtp": {
+      "Host": "smtp.gmail.com",
+      "Port": 587,
+      "User": "diogomartinsdassis@gmail.com",
+      "Password": "your_app_password_here"
+    },
+    "NotifyEmail": "diogo.engx@gmail.com",
+    "MonitoringIntervalSeconds": 60,
+    "BrapiToken": "",
+    "IgnoreMarketHours": true,
+    "EnabledChannels": [
+      "Email",
+      "Discord"
+    ]
+  }
+}
+```
+
+### 2. CLI Execution Result
+
+Running the application locally with `dotnet run` produced the following output:
+
+**Command:**
+
+```bash
+dotnet run --project src/StockQuoteAlert/StockQuoteAlert.csproj -- PETR4 30.00 20.00
+```
+
+**Outcome:**
+The system correctly identified that **PETR4** (trading at **37.91**) was above the sell target (**30.00**). It triggered the "Sell Alert" via Email and Discord logs.
+
+![CLI Execution Result](docs/images/local_running_result.png)
+
+### 3. Docker Container Execution
+
+To verify containerization, the image was pulled and run with environment variable overrides.
+
+**Command:**
+
+```bash
+docker run --name inoalert-test -d \
+-e AppSettings__IgnoreMarketHours=true \
+-e AppSettings__Smtp__Host=smtp.gmail.com \
+-e AppSettings__Smtp__Port=587 \
+... (credentials) ...
+ghcr.io/diogomassis/inoalert:latest \
+PETR4 30.00 20.00
+```
+
+**Outcome:**
+The Docker container started successfully, monitored the stock, and produced identical alert logs to the local version, confirming the environment independence.
+
+![Docker Execution Result](docs/images/docker_running_execution.png)
+
+### 4. Email Notification
+
+The SMTP integration successfully delivered the alert to the inbox.
+
+**Subject:** `[VENDA] Alerta para PETR4`  
+**Body:**  
+> Aconselhamos a VENDA de PETR4.  
+> Preço atual: 37.91  
+> Alvo de venda: 30.00
+
+![Email Received](docs/images/email_result.png)
+
+### 5. Automated Tests
+
+The Unit Tests covering Services and Logic passed (14/14 tests).
+
+**Command:** `dotnet test`
+
+![Tests Execution](docs/images/simplify_unit_test_result.png)
+
+![Test Execution Detailed](docs/images/complete_unit_test_result.png)
+
+### Key Logic: Anti-Flood System
+
+To avoid annoying the user (Email Flooding), the `NotificationStateManager` implements a throttling logic:
+
+1. **Price Change Trigger:** If the stock price changes (e.g., from 37.91 to 37.92) while still in the alert zone, a **new** notification is sent immediately. This ensures the user has the most up-to-date accurate price.
+2. **Same Price Cooldown:** If the price remains **exactly** the same in the next cycle (cached price match), the system **suppresses** the notification.
+3. **Reminder Timeout:** If the price remains the same for more than **10 minutes**, the system forces a "Reminder" notification to ensure the user didn't miss the previous alert.
+
+---
 
 ## Configuration Guide
 
