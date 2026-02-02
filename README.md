@@ -214,6 +214,8 @@ The integration with Discord Webhooks allows receiving alerts directly in a conf
 **Outcome:**
 The system successfully sends a POST request to the configured Discord Webhook.
 
+**Video Demo:** [inoalert_discord_record.mp4](docs/inoalert_discord_record.mp4)
+
 ![Discord Execution Log](docs/images/discord_cli_execution.png)
 
 ![Discord Received Alert](docs/images/discord_cli_result.png)
