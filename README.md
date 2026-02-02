@@ -16,7 +16,8 @@ A robust, container-ready .NET Worker Service designed to monitor stock prices (
     - [2. CLI Execution Result](#2-cli-execution-result)
     - [3. Docker Container Execution](#3-docker-container-execution)
     - [4. Email Notification](#4-email-notification)
-    - [5. Automated Tests](#5-automated-tests)
+    - [5. Discord Notification](#5-discord-notification)
+    - [6. Automated Tests](#6-automated-tests)
 4. [Configuration Guide](#configuration-guide)
     - [1. Local (Developer Mode)](#1-local-developer-mode)
     - [2. Docker (Containerized)](#2-docker-containerized)
@@ -78,12 +79,12 @@ Update `src/StockQuoteAlert/appsettings.json` with your credentials:
     // (Testing) Set to true to bypass market status check
     "IgnoreMarketHours": false,
     // Active Notification Channels (Strategy Pattern)
-    "EnabledChannels": [ "Email", "Discord" ]
+    "EnabledChannels": [ "Email", "Discord" ],
+    // Discord Webhook URL (Required if Discord channel is enabled)
+    "DiscordWebhookUrl": "https://discordapp.com/api/webhooks/..."
   }
 }
 ```
-
-> **Note on Discord:** The `DiscordNotificationService` included is currently a **mock** implementation to demonstrate architectural extensibility (**Open/Closed Principle**). It logs to the console instead of calling a real webhook. To use real Discord notifications, implement the HTTP call in `DiscordNotificationService.cs`.
 
 ### Locally (CLI)
 
@@ -206,7 +207,20 @@ The SMTP integration successfully delivered the alert to the inbox.
 
 ![Email Received](docs/images/email_result.png)
 
-### 5. Automated Tests
+### 5. Discord Notification
+
+The integration with Discord Webhooks allows receiving alerts directly in a configured channel.
+
+**Outcome:**
+The system successfully sends a POST request to the configured Discord Webhook.
+
+![Discord Execution Log](docs/images/discord_cli_execution.png)
+
+![Discord Received Alert](docs/images/discord_cli_result.png)
+
+**Note:** There is an error during the e-mail sending process in the screenshot above because the password was intentionally omitted for security reasons. In a real scenario, ensure valid credentials are provided.
+
+### 6. Automated Tests
 
 The Unit Tests covering Services and Logic passed (14/14 tests).
 
@@ -289,7 +303,7 @@ graph TD
 5. **INotificationStateManager:** Manages the state of sent notifications (in-memory) to prevent spamming. It tracks the last price and time to decide if a new alert is necessary.
 6. **INotificationService:** The application supports multiple simultaneous notification channels (Strategy Pattern).
     - **Configurable:** Channels are dynamically registered based on `EnabledChannels` in `appsettings.json`.
-    - **Extensible:** Includes a real `EmailService` and a sample `DiscordNotificationService` (Console Log) to demonstrate how to easily plug in new providers (like Slack, SMS, WhatsApp) without modifying the core logic.
+    - **Extensible:** Includes a real `EmailService` and `DiscordNotificationService` (Webhook) to demonstrate how to easily plug in new providers (like Slack, SMS, WhatsApp) without modifying the core logic.
 
 ### Project Structure
 

@@ -8,6 +8,7 @@ public class AppSettings
     public string BrapiToken { get; set; }
     public bool IgnoreMarketHours { get; set; } = false;
     public string[] EnabledChannels { get; set; } = ["Email"];
+    public string DiscordWebhookUrl { get; set; }
 }
 
 public class SmtpSettings
