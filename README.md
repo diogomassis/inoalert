@@ -139,18 +139,21 @@ graph TD
     subgraph Core [Services & Domain]
         Worker --> |Orchestrates| Monitor[IStockMonitorService]
         Monitor --> |Checks Hours| MarketChecker[IMarketStatusService]
+        Monitor --> |Checks State| StateManager[INotificationStateManager]
         Monitor --> |Polls| IStock[IStockService]
-        Monitor --> |Notifies| IEmail[IEmailService]
+        Monitor --> |Broadcasts| INotify[IEnumerable<INotificationService>]
         Config[MonitorOptions / AppSettings] -.-> Monitor
     end
 
     subgraph Infra [Infrastructure]
         IStock --> |Http Client| Brapi[Brapi API]
-        IEmail --> |SMTP| MailServer[SMTP Server]
+        INotify --> |SMTP| MailServer[SMTP Server]
+        INotify --> |Webhook| Discord[Discord API]
     end
 
     Brapi --> |Return Price| IStock
-    MailServer --> |Ack| IEmail
+    MailServer --> |Ack| INotify
+    Discord --> |Ack| INotify
 ```
 
 ### Component Design
@@ -159,7 +162,8 @@ graph TD
 2. **IStockMonitorService:** Encapsulates the core business logic (Comparing Price vs. Thresholds).
 3. **IMarketStatusService:** Checks if the B3 Exchange is currently open (Weekdays 10:00 - 17:30 BRT), saving resources when the market is closed. Can be bypassed for testing via `IgnoreMarketHours` config.
 4. **IStockService:** Abstracts the complexity of fetching data. It doesn't matter if the data comes from Brapi, Yahoo, or a database.
-5. **INotificationService:** The application now supports multiple simultaneous notification channels (Strategy Pattern). It broadcasts alerts to all registered implementations (e.g., Email, Discord).
+5. **INotificationStateManager:** Manages the state of sent notifications (in-memory) to prevent spamming. It tracks the last price and time to decide if a new alert is necessary.
+6. **INotificationService:** The application now supports multiple simultaneous notification channels (Strategy Pattern). It broadcasts alerts to all registered implementations (e.g., Email, Discord).
 
 ---
 
@@ -218,7 +222,10 @@ Even though it is a single service, it scales **Horizontally**.
 4. **Retry Pattern (Polly):**
     Network requests are flaky. We implemented a **Exponential Backoff** policy. If the API fails, the application doesn't crash; it waits and retries intelligently.
 
-5. **Smart Resource Usage:**
+5. **In-Memory State Management:**
+    To solve the "Alert Spam" problem without introducing external dependencies (like Redis), we implemented a thread-safe `INotificationStateManager`. It enforces business rules (e.g., "Only notify again if price changes or 10 minutes pass") keeping the architecture cleaner and self-contained.
+
+6. **Smart Resource Usage:**
     The application includes a `MarketStatusService` that prevents unnecessary API calls when the Stock Market (B3) is closed, such as weekends or outside trading hours (10:00 - 17:30).
 
 ---
