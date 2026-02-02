@@ -1,6 +1,8 @@
 using System.Globalization;
+using System.Net.Mail;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Configuration;
 using Polly;
 using Polly.Extensions.Http;
 using StockQuoteAlert;
@@ -29,11 +31,21 @@ if (!decimal.TryParse(args[2], NumberStyles.Any, CultureInfo.InvariantCulture, o
 var monitorOptions = new MonitorOptions(symbol, sellPrice, buyPrice);
 
 var builder = Host.CreateApplicationBuilder(args);
+
+var appSettings = builder.Configuration.GetSection("AppSettings").Get<AppSettings>();
+if (appSettings is null || !IsValidEmail(appSettings.NotifyEmail))
+{
+    Console.WriteLine($"[ERRO CRÍTICO] O email configurado '{appSettings?.NotifyEmail}' é inválido. A aplicação será encerrada para evitar falhas de envio.");
+    Environment.Exit(1);
+}
+
 builder.Services.Configure<AppSettings>(builder.Configuration.GetSection("AppSettings"));
 builder.Services.AddSingleton(monitorOptions);
 builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddSingleton<IMarketStatusService, MarketStatusService>();
-builder.Services.AddTransient<IEmailService, EmailService>();
+builder.Services.AddTransient<INotificationService, EmailService>();
+builder.Services.AddTransient<INotificationService, DiscordNotificationService>();
+
 builder.Services.AddTransient<IStockMonitorService, StockMonitorService>();
 builder.Services.AddHttpClient<IStockService, StockService>()
     .AddPolicyHandler(GetRetryPolicy());
@@ -48,4 +60,18 @@ static IAsyncPolicy<HttpResponseMessage> GetRetryPolicy()
         .HandleTransientHttpError()
         .OrResult(msg => msg.StatusCode == System.Net.HttpStatusCode.NotFound)
         .WaitAndRetryAsync(3, retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)));
+}
+
+static bool IsValidEmail(string email)
+{
+    if (string.IsNullOrWhiteSpace(email)) return false;
+    try
+    {
+        var addr = new MailAddress(email);
+        return addr.Address == email;
+    }
+    catch
+    {
+        return false;
+    }
 }

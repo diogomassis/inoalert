@@ -6,18 +6,18 @@ namespace StockQuoteAlert.Services;
 public class StockMonitorService : IStockMonitorService
 {
     private readonly IStockService _stockService;
-    private readonly IEmailService _emailService;
+    private readonly IEnumerable<INotificationService> _notificationServices; // Changed to Collection
     private readonly IMarketStatusService _marketStatusService;
     private readonly ILogger<StockMonitorService> _logger;
 
     public StockMonitorService(
         IStockService stockService,
-        IEmailService emailService,
+        IEnumerable<INotificationService> notificationServices,
         IMarketStatusService marketStatusService,
         ILogger<StockMonitorService> logger)
     {
         _stockService = stockService;
-        _emailService = emailService;
+        _notificationServices = notificationServices;
         _marketStatusService = marketStatusService;
         _logger = logger;
     }
@@ -42,13 +42,19 @@ public class StockMonitorService : IStockMonitorService
             {
                 var msg = $"Aconselhamos a VENDA de {options.Symbol}.\nPreço atual: {price.Value.ToString(System.Globalization.CultureInfo.InvariantCulture)}\nAlvo de venda: {options.SellPrice.ToString(System.Globalization.CultureInfo.InvariantCulture)}";
                 _logger.LogWarning("ALERTA DE VENDA: {Msg}", msg);
-                await _emailService.SendEmailAsync($"[VENDA] Alerta para {options.Symbol}", msg);
+                foreach (var channel in _notificationServices)
+                {
+                    await channel.SendNotificationAsync($"[VENDA] Alerta para {options.Symbol}", msg);
+                }
             }
             else if (price.Value < options.BuyPrice)
             {
                 var msg = $"Aconselhamos a COMPRA de {options.Symbol}.\nPreço atual: {price.Value.ToString(System.Globalization.CultureInfo.InvariantCulture)}\nAlvo de compra: {options.BuyPrice.ToString(System.Globalization.CultureInfo.InvariantCulture)}";
                 _logger.LogWarning("ALERTA DE COMPRA: {Msg}", msg);
-                await _emailService.SendEmailAsync($"[COMPRA] Alerta para {options.Symbol}", msg);
+                foreach (var channel in _notificationServices)
+                {
+                    await channel.SendNotificationAsync($"[COMPRA] Alerta para {options.Symbol}", msg);
+                }
             }
         }
         catch (Exception ex)

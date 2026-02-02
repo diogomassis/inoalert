@@ -39,6 +39,7 @@ public class Worker : BackgroundService
             {
                 _logger.LogError(ex, "Erro ao monitorar ação {Symbol}", _options.Symbol);
             }
+            _logger.LogInformation("Ciclo finalizado. Aguardando {Seconds} segundos...", _settings.MonitoringIntervalSeconds);
             await Task.Delay(_settings.MonitoringIntervalSeconds * 1000, stoppingToken);
         }
     }

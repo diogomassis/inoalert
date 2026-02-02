@@ -1,12 +1,11 @@
 using MailKit.Net.Smtp;
 using MimeKit;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using StockQuoteAlert.Models;
 
 namespace StockQuoteAlert.Services;
 
-public class EmailService : IEmailService
+public class EmailService : INotificationService
 {
     private readonly AppSettings _settings;
     private readonly ILogger<EmailService> _logger;
@@ -17,17 +16,17 @@ public class EmailService : IEmailService
         _logger = logger;
     }
 
-    public async Task SendEmailAsync(string subject, string body)
+    public async Task SendNotificationAsync(string title, string message)
     {
         try
         {
-            var message = new MimeMessage();
-            message.From.Add(new MailboxAddress("Stock Alert", _settings.Smtp.User));
-            message.To.Add(new MailboxAddress("User", _settings.NotifyEmail));
-            message.Subject = subject;
-            message.Body = new TextPart("plain")
+            var emailMessage = new MimeMessage();
+            emailMessage.From.Add(new MailboxAddress("Stock Alert", _settings.Smtp.User));
+            emailMessage.To.Add(new MailboxAddress("User", _settings.NotifyEmail));
+            emailMessage.Subject = title;
+            emailMessage.Body = new TextPart("plain")
             {
-                Text = body
+                Text = message
             };
 
             using var client = new SmtpClient();
@@ -36,9 +35,9 @@ public class EmailService : IEmailService
             {
                 await client.AuthenticateAsync(_settings.Smtp.User, _settings.Smtp.Password);
             }
-            await client.SendAsync(message);
+            await client.SendAsync(emailMessage);
             await client.DisconnectAsync(true);
-            _logger.LogInformation("E-mail enviado: {Subject}", subject);
+            _logger.LogInformation("E-mail enviado: {Subject}", title);
         }
         catch (Exception ex)
         {
