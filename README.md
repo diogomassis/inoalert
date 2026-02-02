@@ -154,7 +154,8 @@ The application is currently configured with the following `appsettings.json` fo
     "EnabledChannels": [
       "Email",
       "Discord"
-    ]
+    ],
+    "DiscordWebhookUrl": "https://discord.com/api/webhooks/your_webhook_id/your_webhook_token"
   }
 }
 ```
