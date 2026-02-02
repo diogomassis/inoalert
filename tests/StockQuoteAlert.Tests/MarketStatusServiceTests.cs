@@ -1,3 +1,11 @@
+using FluentAssertions;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using Moq;
+using StockQuoteAlert.Models;
+using StockQuoteAlert.Services.Market;
+using Xunit;
+
 namespace StockQuoteAlert.Tests;
 
 public class MarketStatusServiceTests

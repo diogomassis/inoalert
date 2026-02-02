@@ -2,7 +2,9 @@ using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Moq;
 using StockQuoteAlert.Models;
-using StockQuoteAlert.Services;
+using StockQuoteAlert.Services.Market;
+using StockQuoteAlert.Services.Monitoring;
+using StockQuoteAlert.Services.Notifications;
 using Xunit;
 
 namespace StockQuoteAlert.Tests;
