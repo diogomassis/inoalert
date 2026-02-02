@@ -14,6 +14,7 @@ public class StockMonitorServiceTests
     private readonly Mock<IStockService> _mockStockService;
     private readonly Mock<INotificationService> _mockNotificationService;
     private readonly Mock<IMarketStatusService> _mockMarketStatusService;
+    private readonly Mock<INotificationStateManager> _mockStateManager;
     private readonly Mock<ILogger<StockMonitorService>> _mockLogger;
 
     public StockMonitorServiceTests()
@@ -21,26 +22,28 @@ public class StockMonitorServiceTests
         _mockStockService = new Mock<IStockService>();
         _mockNotificationService = new Mock<INotificationService>();
         _mockMarketStatusService = new Mock<IMarketStatusService>();
+        _mockStateManager = new Mock<INotificationStateManager>();
         _mockLogger = new Mock<ILogger<StockMonitorService>>();
         // Default behavior: Market is OPEN
         _mockMarketStatusService.Setup(m => m.IsMarketOpen()).Returns(true);
+        // Default behavior: Always notify
+        _mockStateManager.Setup(m => m.ShouldNotify(It.IsAny<string>(), It.IsAny<decimal>())).Returns(true);
         _options = new MonitorOptions("PETR4", SellPrice: 30.00m, BuyPrice: 20.00m);
-        // Simulating a list with ONE channel for testing efficiency
         var channels = new List<INotificationService> { _mockNotificationService.Object };
         _service = new StockMonitorService(
             _mockStockService.Object,
             channels,
             _mockMarketStatusService.Object,
+            _mockStateManager.Object,
             _mockLogger.Object
         );
     }
-
 
     [Fact]
     public async Task CheckAndNotify_ShouldSendSellNotification_WhenPriceIsAboveSellPrice()
     {
         // Arrange
-        decimal currentPrice = 35.00m; // Acima de 30.00 (Venda)
+        decimal currentPrice = 35.00m;
         _mockStockService.Setup(s => s.GetPriceAsync(_options.Symbol))
             .ReturnsAsync(currentPrice);
         // Act
@@ -50,13 +53,14 @@ public class StockMonitorServiceTests
             It.Is<string>(s => s.Contains("VENDA")),
             It.Is<string>(b => b.Contains("35.00"))),
             Times.Once);
+        _mockStateManager.Verify(m => m.UpdateState(_options.Symbol, currentPrice), Times.Once);
     }
 
     [Fact]
     public async Task CheckAndNotify_ShouldSendBuyNotification_WhenPriceIsBelowBuyPrice()
     {
         // Arrange
-        decimal currentPrice = 15.00m; // Abaixo de 20.00 (Compra)
+        decimal currentPrice = 15.00m;
         _mockStockService.Setup(s => s.GetPriceAsync(_options.Symbol))
             .ReturnsAsync(currentPrice);
         // Act
@@ -66,31 +70,35 @@ public class StockMonitorServiceTests
             It.Is<string>(s => s.Contains("COMPRA")),
             It.Is<string>(b => b.Contains("15.00"))),
             Times.Once);
+        _mockStateManager.Verify(m => m.UpdateState(_options.Symbol, currentPrice), Times.Once);
     }
 
     [Fact]
     public async Task CheckAndNotify_ShouldNotSendNotification_WhenPriceIsWithinNeutralRange()
     {
         // Arrange
-        decimal currentPrice = 25.00m; // Entre 20 e 30 (Neutro)
+        decimal currentPrice = 25.00m;
         _mockStockService.Setup(s => s.GetPriceAsync(_options.Symbol))
             .ReturnsAsync(currentPrice);
         // Act
         await _service.CheckAndNotifyAsync(_options);
         // Assert
         _mockNotificationService.Verify(e => e.SendNotificationAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+        _mockStateManager.Verify(m => m.UpdateState(It.IsAny<string>(), It.IsAny<decimal>()), Times.Never);
     }
 
     [Fact]
-    public async Task CheckAndNotify_ShouldHandleNullPrice_Gracefully()
+    public async Task CheckAndNotify_ShouldNotNotify_WhenStateManagerReturnsFalse()
     {
         // Arrange
-        _mockStockService.Setup(s => s.GetPriceAsync(_options.Symbol))
-            .ReturnsAsync((decimal?)null);
+        decimal currentPrice = 35.00m;
+        _mockStockService.Setup(s => s.GetPriceAsync(_options.Symbol)).ReturnsAsync(currentPrice);
+        _mockStateManager.Setup(m => m.ShouldNotify(_options.Symbol, currentPrice)).Returns(false); // BLOQUEADO
         // Act
         await _service.CheckAndNotifyAsync(_options);
         // Assert
         _mockNotificationService.Verify(e => e.SendNotificationAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+        _mockStateManager.Verify(m => m.UpdateState(It.IsAny<string>(), It.IsAny<decimal>()), Times.Never);
     }
 
     [Fact]

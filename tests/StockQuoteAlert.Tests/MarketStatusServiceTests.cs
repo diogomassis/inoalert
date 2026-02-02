@@ -1,23 +1,24 @@
-using System;
-using FluentAssertions;
-using Microsoft.Extensions.Logging;
-using Moq;
-using StockQuoteAlert.Services;
-using Xunit;
-
 namespace StockQuoteAlert.Tests;
 
 public class MarketStatusServiceTests
 {
     private readonly Mock<TimeProvider> _mockTimeProvider;
     private readonly Mock<ILogger<MarketStatusService>> _mockLogger;
+    private readonly Mock<IOptions<AppSettings>> _mockOptions;
+    private readonly AppSettings _appSettings;
     private readonly MarketStatusService _service;
 
     public MarketStatusServiceTests()
     {
         _mockTimeProvider = new Mock<TimeProvider>();
         _mockLogger = new Mock<ILogger<MarketStatusService>>();
-        _service = new MarketStatusService(_mockTimeProvider.Object, _mockLogger.Object);
+        _mockOptions = new Mock<IOptions<AppSettings>>();
+        _appSettings = new AppSettings { IgnoreMarketHours = false };
+        _mockOptions.Setup(o => o.Value).Returns(_appSettings);
+        _service = new MarketStatusService(
+            _mockTimeProvider.Object,
+            _mockLogger.Object,
+            _mockOptions.Object);
     }
 
     private void SetupTime(int year, int month, int day, int hour, int minute)
@@ -81,5 +82,15 @@ public class MarketStatusServiceTests
         SetupTime(2023, 10, 24, 20, 31);
         // Act & Assert
         _service.IsMarketOpen().Should().BeFalse();
+    }
+
+    [Fact]
+    public void IsMarketOpen_ShouldReturnTrue_WhenIgnoreMarketHoursIsTrue()
+    {
+        // Arrange: Saturday (would be closed), but config overrides
+        SetupTime(2023, 10, 21, 14, 0);
+        _appSettings.IgnoreMarketHours = true;
+        // Act & Assert
+        _service.IsMarketOpen().Should().BeTrue();
     }
 }
