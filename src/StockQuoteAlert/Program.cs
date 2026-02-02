@@ -44,8 +44,15 @@ builder.Services.AddSingleton(monitorOptions);
 builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddSingleton<IMarketStatusService, MarketStatusService>();
 builder.Services.AddSingleton<INotificationStateManager, NotificationStateManager>();
-builder.Services.AddTransient<INotificationService, EmailService>();
-builder.Services.AddTransient<INotificationService, DiscordNotificationService>();
+
+if (appSettings.EnabledChannels.Contains("Email", StringComparer.OrdinalIgnoreCase))
+{
+    builder.Services.AddTransient<INotificationService, EmailService>();
+}
+if (appSettings.EnabledChannels.Contains("Discord", StringComparer.OrdinalIgnoreCase))
+{
+    builder.Services.AddTransient<INotificationService, DiscordNotificationService>();
+}
 
 builder.Services.AddTransient<IStockMonitorService, StockMonitorService>();
 builder.Services.AddHttpClient<IStockService, StockService>()

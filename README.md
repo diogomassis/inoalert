@@ -66,10 +66,14 @@ Update `src/StockQuoteAlert/appsettings.json` with your credentials:
     // (Optional) Brapi.dev API Token for higher rate limits
     "BrapiToken": "your_brapi_token",
     // (Testing) Set to true to bypass market status check
-    "IgnoreMarketHours": false
+    "IgnoreMarketHours": false,
+    // Active Notification Channels (Strategy Pattern)
+    "EnabledChannels": [ "Email", "Discord" ]
   }
 }
 ```
+
+> **Note on Discord:** The `DiscordNotificationService` included is currently a **mock** implementation to demonstrate architectural extensibility. It logs to the console instead of calling a real webhook. To use real Discord notifications, implement the HTTP call in `DiscordNotificationService.cs`.
 
 ### Locally (CLI)
 
@@ -163,7 +167,9 @@ graph TD
 3. **IMarketStatusService:** Checks if the B3 Exchange is currently open (Weekdays 10:00 - 17:30 BRT), saving resources when the market is closed. Can be bypassed for testing via `IgnoreMarketHours` config.
 4. **IStockService:** Abstracts the complexity of fetching data. It doesn't matter if the data comes from Brapi, Yahoo, or a database.
 5. **INotificationStateManager:** Manages the state of sent notifications (in-memory) to prevent spamming. It tracks the last price and time to decide if a new alert is necessary.
-6. **INotificationService:** The application now supports multiple simultaneous notification channels (Strategy Pattern). It broadcasts alerts to all registered implementations (e.g., Email, Discord).
+6. **INotificationService:** The application supports multiple simultaneous notification channels (Strategy Pattern).
+    - **Configurable:** Channels are dynamically registered based on `EnabledChannels` in `appsettings.json`.
+    - **Extensible:** Includes a real `EmailService` and a sample `DiscordNotificationService` (Mock) to demonstrate how to easily plug in new providers (like Slack, SMS, WhatsApp) without modifying the core logic.
 
 ---
 
