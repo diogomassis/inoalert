@@ -1,6 +1,4 @@
-# StockQuoteAlert
-
-![Tests](https://img.shields.io/badge/tests-passing-brightgreen)
+# inoalert
 
 A robust, container-ready .NET Worker Service designed to monitor stock prices (B3) and send email alerts based on buy/sell thresholds.
 
@@ -13,9 +11,12 @@ A robust, container-ready .NET Worker Service designed to monitor stock prices (
     - [Locally (CLI)](#locally-cli)
     - [Using Docker](#using-docker)
 3. [Configuration Guide](#configuration-guide)
+    - [1. Local (Developer Mode)](#1-local-developer-mode)
+    - [2. Docker (Containerized)](#2-docker-containerized)
 4. [Architecture](#architecture)
     - [High-Level Diagram](#high-level-diagram)
     - [Component Design](#component-design)
+    - [Project Structure](#project-structure)
 5. [Technology Stack](#technology-stack)
 6. [Design Decisions & Trade-offs](#design-decisions--trade-offs)
     - [Why .NET Worker Service?](#why-net-worker-service)
@@ -24,6 +25,9 @@ A robust, container-ready .NET Worker Service designed to monitor stock prices (
 7. [Design Patterns Used](#design-patterns-used)
 8. [Resilience & Reliability](#resilience--reliability)
 9. [Quality Assurance & Testing](#quality-assurance--testing)
+    - [What is tested?](#what-is-tested)
+    - [How to run tests](#how-to-run-tests)
+    - [Mutation Testing (Stryker)](#mutation-testing-stryker)
 10. [Docker Optimization and Best Practices](#docker-optimization-and-best-practices)
 11. [Author](#author)
 
