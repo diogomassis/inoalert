@@ -26,10 +26,10 @@ public class StockMonitorServiceTests
         _mockMarketStatusService = new Mock<IMarketStatusService>();
         _mockStateManager = new Mock<INotificationStateManager>();
         _mockLogger = new Mock<ILogger<StockMonitorService>>();
-        // Default behavior: Market is OPEN
+        
         _mockMarketStatusService.Setup(m => m.IsMarketOpen()).Returns(true);
-        // Default behavior: Always notify
         _mockStateManager.Setup(m => m.ShouldNotify(It.IsAny<string>(), It.IsAny<decimal>())).Returns(true);
+
         _options = new MonitorOptions("PETR4", SellPrice: 30.00m, BuyPrice: 20.00m);
         var channels = new List<INotificationService> { _mockNotificationService.Object };
         _service = new StockMonitorService(
