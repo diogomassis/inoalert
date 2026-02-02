@@ -12,21 +12,24 @@ public class StockMonitorServiceTests
     private readonly MonitorOptions _options;
     private readonly StockMonitorService _service;
     private readonly Mock<IStockService> _mockStockService;
-    private readonly Mock<IEmailService> _mockEmailService;
+    private readonly Mock<INotificationService> _mockNotificationService;
     private readonly Mock<IMarketStatusService> _mockMarketStatusService;
     private readonly Mock<ILogger<StockMonitorService>> _mockLogger;
 
     public StockMonitorServiceTests()
     {
         _mockStockService = new Mock<IStockService>();
-        _mockEmailService = new Mock<IEmailService>();
+        _mockNotificationService = new Mock<INotificationService>();
         _mockMarketStatusService = new Mock<IMarketStatusService>();
         _mockLogger = new Mock<ILogger<StockMonitorService>>();
-        _mockMarketStatusService.Setup(m => m.IsMarketOpen()).Returns(true); // Default behavior: Market is OPEN
+        // Default behavior: Market is OPEN
+        _mockMarketStatusService.Setup(m => m.IsMarketOpen()).Returns(true);
         _options = new MonitorOptions("PETR4", SellPrice: 30.00m, BuyPrice: 20.00m);
+        // Simulating a list with ONE channel for testing efficiency
+        var channels = new List<INotificationService> { _mockNotificationService.Object };
         _service = new StockMonitorService(
             _mockStockService.Object,
-            _mockEmailService.Object,
+            channels,
             _mockMarketStatusService.Object,
             _mockLogger.Object
         );
@@ -34,7 +37,7 @@ public class StockMonitorServiceTests
 
 
     [Fact]
-    public async Task CheckAndNotify_ShouldSendSellEmail_WhenPriceIsAboveSellPrice()
+    public async Task CheckAndNotify_ShouldSendSellNotification_WhenPriceIsAboveSellPrice()
     {
         // Arrange
         decimal currentPrice = 35.00m; // Acima de 30.00 (Venda)
@@ -43,14 +46,14 @@ public class StockMonitorServiceTests
         // Act
         await _service.CheckAndNotifyAsync(_options);
         // Assert
-        _mockEmailService.Verify(e => e.SendEmailAsync(
+        _mockNotificationService.Verify(e => e.SendNotificationAsync(
             It.Is<string>(s => s.Contains("VENDA")),
             It.Is<string>(b => b.Contains("35.00"))),
             Times.Once);
     }
 
     [Fact]
-    public async Task CheckAndNotify_ShouldSendBuyEmail_WhenPriceIsBelowBuyPrice()
+    public async Task CheckAndNotify_ShouldSendBuyNotification_WhenPriceIsBelowBuyPrice()
     {
         // Arrange
         decimal currentPrice = 15.00m; // Abaixo de 20.00 (Compra)
@@ -59,14 +62,14 @@ public class StockMonitorServiceTests
         // Act
         await _service.CheckAndNotifyAsync(_options);
         // Assert
-        _mockEmailService.Verify(e => e.SendEmailAsync(
+        _mockNotificationService.Verify(e => e.SendNotificationAsync(
             It.Is<string>(s => s.Contains("COMPRA")),
             It.Is<string>(b => b.Contains("15.00"))),
             Times.Once);
     }
 
     [Fact]
-    public async Task CheckAndNotify_ShouldNotSendEmail_WhenPriceIsWithinNeutralRange()
+    public async Task CheckAndNotify_ShouldNotSendNotification_WhenPriceIsWithinNeutralRange()
     {
         // Arrange
         decimal currentPrice = 25.00m; // Entre 20 e 30 (Neutro)
@@ -75,7 +78,7 @@ public class StockMonitorServiceTests
         // Act
         await _service.CheckAndNotifyAsync(_options);
         // Assert
-        _mockEmailService.Verify(e => e.SendEmailAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+        _mockNotificationService.Verify(e => e.SendNotificationAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
     }
 
     [Fact]
@@ -87,7 +90,7 @@ public class StockMonitorServiceTests
         // Act
         await _service.CheckAndNotifyAsync(_options);
         // Assert
-        _mockEmailService.Verify(e => e.SendEmailAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+        _mockNotificationService.Verify(e => e.SendNotificationAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
     }
 
     [Fact]
@@ -111,6 +114,6 @@ public class StockMonitorServiceTests
         await _service.CheckAndNotifyAsync(_options);
         // Assert
         _mockStockService.Verify(s => s.GetPriceAsync(It.IsAny<string>()), Times.Never);
-        _mockEmailService.Verify(e => e.SendEmailAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+        _mockNotificationService.Verify(e => e.SendNotificationAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
     }
 }

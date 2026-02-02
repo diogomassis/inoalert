@@ -145,7 +145,7 @@ graph TD
 2. **IStockMonitorService:** Encapsulates the core business logic (Comparing Price vs. Thresholds).
 3. **IMarketStatusService:** Checks if the B3 Exchange is currently open (Weekdays 10:00 - 17:30 BRT), saving resources when the market is closed.
 4. **IStockService:** Abstracts the complexity of fetching data. It doesn't matter if the data comes from Brapi, Yahoo, or a database.
-5. **IEmailService:** Abstracts the notification method.
+5. **INotificationService:** The application now supports multiple simultaneous notification channels (Strategy Pattern). It broadcasts alerts to all registered implementations (e.g., Email, Discord).
 
 ---
 
@@ -197,8 +197,9 @@ Even though it is a single service, it scales **Horizontally**.
 2. **Options Pattern:**
     Used to bind `appsettings.json` sections to strongly typed classes (`AppSettings`), preventing "Magic Strings" for configuration keys.
 
-3. **Strategy Pattern (implied via Interfaces):**
-    By using `IStockService`, we can easily swap the implementation. If Brapi.dev goes down, we can write a `YahooFinanceService : IStockService` and swap it in `Program.cs` without changing a single line of the `Worker` logic.
+3. **Strategy Pattern:**
+    - **Data Fetching:** By using `IStockService`, we can easily swap the API provider (Brapi vs Yahoo) without changing business logic.
+    - **Notifications:** We use `IEnumerable<INotificationService>` to execute multiple notification strategies (Email, Discord, Slack) simultaneously. This adheres to the **Open/Closed Principle**—we can add a new notification channel (e.g., SMS) by creating a new class without modifying the existing `StockMonitorService`.
 
 4. **Retry Pattern (Polly):**
     Network requests are flaky. We implemented a **Exponential Backoff** policy. If the API fails, the application doesn't crash; it waits and retries intelligently.
