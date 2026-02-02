@@ -27,7 +27,6 @@ A robust, container-ready .NET Worker Service designed to monitor stock prices (
 9. [Quality Assurance & Testing](#quality-assurance--testing)
     - [What is tested?](#what-is-tested)
     - [How to run tests](#how-to-run-tests)
-    - [Mutation Testing (Stryker)](#mutation-testing-stryker)
 10. [Docker Optimization and Best Practices](#docker-optimization-and-best-practices)
 11. [Author](#author)
 
@@ -281,28 +280,6 @@ The critical business logic resides in `StockMonitorService` and is fully covere
 ```bash
 dotnet test
 ```
-
-### Mutation Testing (Stryker)
-
-To ensure our tests are not just "touching lines" but actually asserting logic, we use **Mutation Testing**.
-
-> "Coverage only tells you what code was executed. Mutation testing tells you how satisfied your tests are."
-
-**How it works:** Stryker introduces small bugs (mutants) into the compiled code (e.g., changing `>` to `>=` or removing a function call) and runs the tests. If the tests fail, the mutant is **Killed** (Good). If they pass, the mutant **Survived** (Bad, needs more strict tests).
-
-**Run mutation tests:**
-
-```bash
-# Prepare environment (restore tool)
-cd tests
-dotnet tool restore
-
-# Run Stryker from the test project
-cd StockQuoteAlert.Tests
-dotnet dotnet-stryker
-```
-
-Check the generated HTML report in `tests/StockQuoteAlert.Tests/StrykerOutput` for a visual inspection of code quality.
 
 ---
 
