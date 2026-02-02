@@ -2,7 +2,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using StockQuoteAlert.Models;
-using StockQuoteAlert.Services;
+using StockQuoteAlert.Services.Monitoring;
 
 namespace StockQuoteAlert;
 

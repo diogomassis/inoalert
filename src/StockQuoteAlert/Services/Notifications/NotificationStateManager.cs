@@ -1,4 +1,7 @@
-namespace StockQuoteAlert.Services;
+using System.Collections.Concurrent;
+using Microsoft.Extensions.Logging;
+
+namespace StockQuoteAlert.Services.Notifications;
 
 public class NotificationStateManager : INotificationStateManager
 {

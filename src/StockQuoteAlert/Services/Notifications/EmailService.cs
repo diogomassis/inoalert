@@ -1,6 +1,10 @@
+using MimeKit;
+using MailKit.Net.Smtp;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using StockQuoteAlert.Models;
 
-namespace StockQuoteAlert.Services;
+namespace StockQuoteAlert.Services.Notifications;
 
 public class EmailService : INotificationService
 {

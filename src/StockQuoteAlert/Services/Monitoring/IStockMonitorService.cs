@@ -1,6 +1,6 @@
 using StockQuoteAlert.Models;
 
-namespace StockQuoteAlert.Services;
+namespace StockQuoteAlert.Services.Monitoring;
 
 public interface IStockMonitorService
 {

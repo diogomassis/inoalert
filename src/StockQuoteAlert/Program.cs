@@ -1,5 +1,15 @@
+using System.Globalization;
+using System.Net.Mail;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Configuration;
+using Polly;
+using Polly.Extensions.Http;
+using StockQuoteAlert;
 using StockQuoteAlert.Models;
-using StockQuoteAlert.Services;
+using StockQuoteAlert.Services.Market;
+using StockQuoteAlert.Services.Monitoring;
+using StockQuoteAlert.Services.Notifications;
 
 if (args.Length < 3)
 {

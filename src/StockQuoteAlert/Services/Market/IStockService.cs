@@ -1,4 +1,4 @@
-namespace StockQuoteAlert.Services;
+namespace StockQuoteAlert.Services.Market;
 
 public interface IStockService
 {

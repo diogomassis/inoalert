@@ -1,6 +1,10 @@
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using System.Text.Json;
+using System.Net.Http.Json;
 using StockQuoteAlert.Models;
 
-namespace StockQuoteAlert.Services;
+namespace StockQuoteAlert.Services.Market;
 
 public class StockService : IStockService
 {
