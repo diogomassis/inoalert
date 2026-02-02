@@ -11,9 +11,9 @@ public class DiscordNotificationService : INotificationService
 
     public Task SendNotificationAsync(string title, string message)
     {
-        _logger.LogInformation("[DISCORD MOCK] Sending notification to Discord Channel...");
-        _logger.LogInformation("[DISCORD MOCK] Title: {Title}", title);
-        _logger.LogInformation("[DISCORD MOCK] Message: {Message}", message);
+        _logger.LogInformation("[Discord] Sending notification to Discord Channel...", title);
+        _logger.LogInformation("[Discord] Title: {Title}", title);
+        _logger.LogInformation("[Discord] Message: {Message}", message);
         return Task.CompletedTask;
     }
 }
